@@ -12,7 +12,7 @@ authors = "${mod_author}"
 credits = "Support: https://ko-fi.com/acesoverdeuces777"
 displayURL = "https://github.com/BackupBackupFede/${mod_repo}"
 description = '''
-TODO description.
+Shift-click a result slot and the station keeps going: it refills its input slots from your inventory until you run out. Villager, stonecutter, smithing table, loom, cartography table and grindstone. No rule is changed.
 
 Support: https://ko-fi.com/acesoverdeuces777
 '''

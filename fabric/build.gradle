@@ -36,13 +36,10 @@ dependencies {
         // common mixin (written in Mojmap) applicable without an intermediate refmap.
         mappings loom.officialMojangMappings()
         modImplementation "net.fabricmc:fabric-loader:${rootProject.loaderVersion}"
-        modImplementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabricApiVersion}"
     } else {
         // MC 26.x ships de-obfuscated (real names) -> no mappings layer, and no `mod` prefix
         // because there is nothing to remap.
         implementation "net.fabricmc:fabric-loader:${rootProject.loaderVersion}"
-        // No modImplementation under the no-remap plugin: it does not exist there (invariant 2).
-        implementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabricApiVersion}"
     }
 
     compileOnly project(':common')

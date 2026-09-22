@@ -3,7 +3,15 @@
   "minVersion": "0.8",
   "package": "net.emeraude.bulkmegapack.mixin",
   "compatibilityLevel": "${mixin_compat}",
-  "mixins": [],
+  "mixins": [
+    "CartographyTableMenuMixin",
+    "DedicatedServerMixin",
+    "GrindstoneMenuMixin",
+    "ItemCombinerMenuMixin",
+    "LoomMenuMixin",
+    "MerchantMenuMixin",
+    "StonecutterMenuMixin"
+  ],
   "client": [],
   "injectors": {
     "defaultRequire": 1
