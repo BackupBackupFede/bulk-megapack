@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'net.neoforged.moddev'
+}
+
+base {
+    archivesName = "${rootProject.mod_id}-common"
+}
+
+neoForge {
+    // Compile common code against un-modified (Mojang-mapped) Minecraft.
+    neoFormVersion = rootProject.neoformVersion
+}
+
+dependencies {
+    // Both loaders bundle Mixin + MixinExtras, so common may use them (provided, not shipped).
+    compileOnly "net.fabricmc:sponge-mixin:${rootProject.mixin_version}"
+    compileOnly "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
+}
