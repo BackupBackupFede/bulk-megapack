@@ -3,13 +3,15 @@
 // Build a line with:  ./gradlew build -Pminecraft_version=1.21.1
 // (the default target is minecraft_version in gradle.properties)
 //
-// Adding a version = one row here. Also add it to the `minecraft:` list in
-// .github/workflows/build.yml and release.yml, or CI will silently skip it.
+// Adding a version = one row here; CI reads these keys straight out of this file.
 // ---------------------------------------------------------------------------
 def MC = rootProject.minecraft_version
 def MATRIX = [
+    "26.3"  : [neoform: "26.3-1",                 neo: "26.3.0.10-beta", loader: "0.19.5",  java: 25, obfuscated: false,
+               fabricMcDep: ">=26.3 <26.4",       neoMcDep: "[26.3,26.4)",   neoDep: "[26.3,)",       packFormat: 97,
+               fabricApi: "0.160.0+26.3"],
     "26.2"  : [neoform: "26.2-2",                 neo: "26.2.0.35-beta", loader: "0.19.3",  java: 25, obfuscated: false,
-               fabricMcDep: ">=26.2",             neoMcDep: "[26.2,)",       neoDep: "[26.2,)",       packFormat: 88,
+               fabricMcDep: ">=26.2 <26.3",       neoMcDep: "[26.2,26.3)",   neoDep: "[26.2,)",       packFormat: 88,
                fabricApi: "0.158.0+26.2"],
     "1.21.1": [neoform: "1.21.1-20240808.144430", neo: "21.1.243",       loader: "0.16.10", java: 21, obfuscated: true,
                fabricMcDep: ">=1.21.1 <1.22",     neoMcDep: "[1.21.1,1.22)", neoDep: "[21.1.0,)",     packFormat: 34,
