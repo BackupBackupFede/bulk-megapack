@@ -7,9 +7,12 @@
     "CartographyTableMenuMixin",
     "DedicatedServerMixin",
     "GrindstoneMenuMixin",
+    "ItemFrameMixin",
     "ItemCombinerMenuMixin",
     "LoomMenuMixin",
     "MerchantMenuMixin",
+    "ServerPlayerGameModeMixin",
+    "ServerPlayerMixin",
     "StonecutterMenuMixin"
   ],
   "client": [],

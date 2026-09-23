@@ -19,3 +19,8 @@ dependencies {
     compileOnly "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
 }
+
+// One extra source folder per Minecraft line, for the rare class that cannot be written once:
+// where a vanilla method changed shape, a mixin handler has to change with it. Loader modules
+// compile common's allSource, so they pick this up as well.
+sourceSets.main.java.srcDir rootProject.mcObfuscated ? 'src/main/java-legacy' : 'src/main/java-modern'

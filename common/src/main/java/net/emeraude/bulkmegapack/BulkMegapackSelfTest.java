@@ -1,6 +1,24 @@
 package net.emeraude.bulkmegapack;
 
 import com.mojang.authlib.GameProfile;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.RepeaterBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import java.lang.reflect.Method;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -65,6 +83,12 @@ public final class BulkMegapackSelfTest {
             check(failures, "smithing", smithing(server, level));
             check(failures, "loom", loom(server, level));
             check(failures, "grindstone", grindstone(server, level));
+            check(failures, "harvest", harvest(server, level));
+            check(failures, "composter", composter(server, level));
+            check(failures, "repeater", repeater(server, level));
+            check(failures, "doubleDoors", doubleDoors(server, level));
+            check(failures, "itemFrame", itemFrame(server, level));
+            check(failures, "restock", restock(server, level));
         } catch (Throwable t) {
             BulkMegapack.LOGGER.error("[SELFTEST] crashed", t);
             failures.add("crash: " + t);
@@ -234,7 +258,144 @@ public final class BulkMegapackSelfTest {
         return wrong.isEmpty() ? null : String.join(", ", wrong);
     }
 
+    // --- world gestures -------------------------------------------------------------------------
+
+    /** A grown wheat crop right-clicked: back to age 0, wheat on the ground, one seed kept back. */
+    private static String harvest(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        BlockPos pos = freeSpot(level, 0);
+        level.setBlockAndUpdate(pos.below(), Blocks.FARMLAND.defaultBlockState());
+        CropBlock wheat = (CropBlock) Blocks.WHEAT;
+        level.setBlockAndUpdate(pos, wheat.getStateForAge(wheat.getMaxAge()));
+
+        useOn(player, level, ItemStack.EMPTY, pos);
+
+        BlockState after = level.getBlockState(pos);
+        if (!(after.getBlock() instanceof CropBlock crop)) return "the crop is gone (block is " + after.getBlock() + ")";
+        if (crop.getAge(after) != 0) return "the crop was not reset (age " + crop.getAge(after) + ")";
+        return dropped(level, pos, "minecraft:wheat") >= 1 ? null : "no wheat on the ground";
+    }
+
+    /** A stack of seeds sneak-right-clicked into a composter: the whole stack goes in. */
+    private static String composter(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        player.setShiftKeyDown(true);
+        BlockPos pos = freeSpot(level, 4);
+        level.setBlockAndUpdate(pos, Blocks.COMPOSTER.defaultBlockState());
+
+        ItemStack seeds = stack("minecraft:wheat_seeds", 64);
+        useOn(player, level, seeds, pos);
+
+        int fill = level.getBlockState(pos).getValue(ComposterBlock.LEVEL);
+        if (seeds.getCount() == 64) return "nothing was composted";
+        return seeds.isEmpty() || fill >= 7 ? null : seeds.getCount() + " seeds left with the composter at " + fill;
+    }
+
+    /** A repeater sneak-right-clicked with an empty hand: the delay steps backwards, 1 -> 4. */
+    private static String repeater(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        player.setShiftKeyDown(true);
+        BlockPos pos = freeSpot(level, 8);
+        level.setBlockAndUpdate(pos, Blocks.REPEATER.defaultBlockState());
+
+        useOn(player, level, ItemStack.EMPTY, pos);
+        int delay = level.getBlockState(pos).getValue(RepeaterBlock.DELAY);
+        return delay == 4 ? null : "delay is " + delay + " (expected 4)";
+    }
+
+    /** One half of a double door opened: the other half follows. */
+    private static String doubleDoors(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        BlockPos left = freeSpot(level, 12);
+        BlockPos right = left.east();
+        BlockState base = Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.NORTH);
+        level.setBlock(left, base.setValue(DoorBlock.HINGE, DoorHingeSide.LEFT), 2);
+        level.setBlock(left.above(), base.setValue(DoorBlock.HINGE, DoorHingeSide.LEFT).setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER), 2);
+        level.setBlock(right, base.setValue(DoorBlock.HINGE, DoorHingeSide.RIGHT), 2);
+        level.setBlock(right.above(), base.setValue(DoorBlock.HINGE, DoorHingeSide.RIGHT).setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER), 2);
+
+        useOn(player, level, ItemStack.EMPTY, left);
+
+        boolean leftOpen = level.getBlockState(left).getValue(DoorBlock.OPEN);
+        boolean rightOpen = level.getBlockState(right).getValue(DoorBlock.OPEN);
+        return leftOpen && rightOpen ? null : "clicked half " + leftOpen + ", other half " + rightOpen + " (expected both open)";
+    }
+
+    /**
+     * A filled item frame sneak-right-clicked: the item turns back one step. The interact method
+     * gained a parameter in 26.x, so this dev-only check calls it by reflection rather than
+     * carrying two versions of the test.
+     */
+    private static String itemFrame(MinecraftServer server, ServerLevel level) throws Exception {
+        ServerPlayer player = player(server, level);
+        player.setShiftKeyDown(true);
+        BlockPos pos = freeSpot(level, 16);
+        level.setBlockAndUpdate(pos, Blocks.STONE.defaultBlockState());
+
+        ItemFrame frame = new ItemFrame(level, pos.above(), Direction.UP);
+        frame.setItem(stack("minecraft:diamond", 1));
+        frame.setRotation(3);
+        level.addFreshEntity(frame);
+
+        Method interact = null;
+        for (Method m : ItemFrame.class.getMethods()) {
+            if (m.getName().equals("interact") && m.getParameterCount() >= 2 && m.getParameterTypes()[0] == Player.class) interact = m;
+        }
+        if (interact == null) return "no interact method found on ItemFrame";
+        Object[] args = new Object[interact.getParameterCount()];
+        args[0] = player;
+        args[1] = InteractionHand.MAIN_HAND;
+        if (args.length > 2) args[2] = Vec3.atCenterOf(pos);
+        interact.invoke(frame, args);
+
+        return frame.getRotation() == 2 ? null : "rotation is " + frame.getRotation() + " (expected 2)";
+    }
+
+    /** The hand runs out of stone: the next stack in the inventory takes its place on the next tick. */
+    private static String restock(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        Inventory inv = player.getInventory();
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack("minecraft:stone", 1));
+        inv.setItem(9, stack("minecraft:stone", 64));
+
+        ItemStack remembered = WorldGestures.remember(player);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY); // the last block was placed
+        WorldGestures.restockHand(player, remembered);
+
+        ItemStack hand = player.getMainHandItem();
+        if (hand.isEmpty()) return "the hand stayed empty";
+        return hand.getCount() == 64 && count(inv, "minecraft:stone") == 64
+            ? null
+            : hand.getCount() + " in hand, " + count(inv, "minecraft:stone") + " in total (expected 64 / 64)";
+    }
+
     // --- helpers --------------------------------------------------------------------------------
+
+    /** Runs the server's own block-use path, which is where the world gestures hook in. */
+    private static void useOn(ServerPlayer player, ServerLevel level, ItemStack stack, BlockPos pos) {
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+        player.gameMode.useItemOn(player, level, stack, InteractionHand.MAIN_HAND, hit);
+    }
+
+    /** Empty air well above the terrain, so nothing already there takes part in the test. */
+    private static BlockPos freeSpot(ServerLevel level, int offsetX) {
+        BlockPos pos = new BlockPos(offsetX, 180, 0);
+        for (int x = -1; x <= 2; x++) {
+            for (int y = -1; y <= 2; y++) {
+                level.setBlock(pos.offset(x, y, 0), Blocks.AIR.defaultBlockState(), 2);
+            }
+        }
+        return pos;
+    }
+
+    private static int dropped(ServerLevel level, BlockPos pos, String id) {
+        int n = 0;
+        for (ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(3.0))) {
+            if (id(entity.getItem().getItem()).equals(id)) n += entity.getItem().getCount();
+        }
+        return n;
+    }
+
 
     /** What AbstractContainerMenu.doClick does for a QUICK_MOVE on a slot. */
     private static void shiftClick(AbstractContainerMenu menu, ServerPlayer player, int slot) {

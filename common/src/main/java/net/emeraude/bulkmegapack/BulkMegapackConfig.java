@@ -29,6 +29,12 @@ public final class BulkMegapackConfig {
     private static boolean cartography = true;
     private static boolean grindstone = true;
     private static boolean grindstoneIncludeHotbar = false;
+    private static boolean harvest = true;
+    private static boolean composter = true;
+    private static boolean cycleBack = true;
+    private static boolean doubleDoors = true;
+    private static boolean restock = true;
+    private static boolean ignoreOtherMods = false;
 
     private BulkMegapackConfig() {}
 
@@ -46,6 +52,12 @@ public final class BulkMegapackConfig {
             cartography = read(root, "cartography", true);
             grindstone = read(root, "grindstone", true);
             grindstoneIncludeHotbar = read(root, "grindstoneIncludeHotbar", false);
+            harvest = read(root, "harvest", true);
+            composter = read(root, "composter", true);
+            cycleBack = read(root, "cycleBack", true);
+            doubleDoors = read(root, "doubleDoors", true);
+            restock = read(root, "restock", true);
+            ignoreOtherMods = read(root, "ignoreOtherMods", false);
 
             Files.createDirectories(file.getParent());
             Files.writeString(file, GSON.toJson(root));
@@ -87,6 +99,31 @@ public final class BulkMegapackConfig {
 
     public static boolean grindstone() {
         return enabled && grindstone;
+    }
+
+    public static boolean harvest() {
+        return enabled && harvest;
+    }
+
+    public static boolean composter() {
+        return enabled && composter;
+    }
+
+    public static boolean cycleBack() {
+        return enabled && cycleBack;
+    }
+
+    public static boolean doubleDoors() {
+        return enabled && doubleDoors;
+    }
+
+    public static boolean restock() {
+        return enabled && restock;
+    }
+
+    /** When true, a gesture stays on even if a mod that already provides it is installed. */
+    public static boolean ignoreOtherMods() {
+        return ignoreOtherMods;
     }
 
     /** When false (default), the grindstone never pulls from the hotbar, where the player keeps their own tools. */
