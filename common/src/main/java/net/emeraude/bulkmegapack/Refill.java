@@ -1,15 +1,10 @@
 package net.emeraude.bulkmegapack;
 
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 /**
  * Moves items from the player's inventory into a station's input slots. Shared by every station
@@ -104,39 +99,4 @@ public final class Refill {
         }
     }
 
-    /**
-     * Puts one grindable item from the player's inventory into an empty grindstone input slot.
-     * Only items the grindstone would actually strip (at least one non-curse enchantment), never a
-     * renamed item, and never from the hotbar unless the config allows it.
-     *
-     * @return true if an item was moved
-     */
-    public static boolean grindstoneNext(AbstractContainerMenu menu, Player player, int slotIndex) {
-        Slot target = menu.slots.get(slotIndex);
-        if (target.hasItem()) return false;
-
-        Inventory inventory = player.getInventory();
-        boolean hotbar = BulkMegapackConfig.grindstoneIncludeHotbar();
-        for (Slot source : menu.slots) {
-            if (source.container != inventory) continue;
-            if (!hotbar && Inventory.isHotbarSlot(source.getContainerSlot())) continue;
-
-            ItemStack candidate = source.getItem();
-            if (!isGrindable(candidate) || !target.mayPlace(candidate)) continue;
-
-            target.set(candidate.split(1));
-            source.setChanged();
-            return true;
-        }
-        return false;
-    }
-
-    /** True when grinding gives something back: a non-curse enchantment, and no custom name. */
-    public static boolean isGrindable(ItemStack stack) {
-        if (stack.isEmpty() || stack.has(DataComponents.CUSTOM_NAME)) return false;
-        for (Holder<Enchantment> enchantment : EnchantmentHelper.getEnchantmentsForCrafting(stack).keySet()) {
-            if (!enchantment.is(EnchantmentTags.CURSE)) return true;
-        }
-        return false;
-    }
 }

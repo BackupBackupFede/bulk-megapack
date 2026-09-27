@@ -12,9 +12,7 @@ authors = "${mod_author}"
 credits = "Support: https://ko-fi.com/acesoverdeuces777"
 displayURL = "https://github.com/BackupBackupFede/${mod_repo}"
 description = '''
-Shift-click a result slot and the station keeps going: it refills its input slots from your inventory until you run out. Villager, stonecutter, smithing table, loom, cartography table and grindstone. No rule is changed.
-
-Support: https://ko-fi.com/acesoverdeuces777
+Shift-click a station result and it keeps going until your stack runs out: villager trades, stonecutter, loom, cartography table, plus sneak + right-click to empty a stack into a composter. No rule is changed.
 '''
 
 [[mixins]]

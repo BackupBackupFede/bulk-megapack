@@ -1,52 +1,37 @@
 # Bulk Megapack
 
-Shift-click once and the station keeps going. Right-click once and the obvious thing happens.
-One mod for the gestures Minecraft almost has.
+One gesture, one whole stack. Shift-click a station's result and it keeps going until your stack
+runs out, instead of stopping after a single item.
 
-**No rule is changed.** Same costs, same stocks, same XP, same drop chances. Everything here is
-vanilla's own code, run again — and every gesture can be switched off on its own.
+**No rule is changed.** Same costs, same stocks, same XP, same odds — every pass is vanilla's own
+code, run again. Each station can be switched off on its own.
 
 ## What it does
 
-### At a station — shift-click the result
-
-| Station | What one click now does |
+| Gesture | What one action now does |
 |---|---|
-| Villager | trades until you run out of payment |
-| Stonecutter | cuts every matching block in your inventory |
-| Smithing table | upgrades or trims every identical piece you carry |
-| Loom | applies the pattern to every identical banner |
-| Cartography table | turns every empty map you carry into a copy |
-| Grindstone | disenchants a whole inventory of loot, one XP roll per item |
-
-The anvil is deliberately left alone: it charges levels, and chaining it would spend your XP
-without asking.
+| Shift-click a **villager** trade | trades until you run out of payment |
+| Shift-click the **stonecutter** result | cuts every matching block in your inventory |
+| Shift-click the **loom** result | applies the pattern to every identical banner you carry |
+| Shift-click the **cartography table** result | turns every empty map you carry into a copy |
+| Sneak + right-click a **composter** | the whole stack in hand goes in, at vanilla odds |
 
 A station is left as you found it: when the run stops, anything still sitting in its input slots
 goes back to your inventory.
 
-### In the world
-
-| Gesture | What happens |
-|---|---|
-| Right-click a grown crop | harvests it and replants it, keeping one seed from the drop |
-| Sneak + right-click a composter | the whole stack goes in, one item at a time, vanilla odds |
-| Sneak + right-click a repeater, **empty-handed** | the delay steps **backwards** instead of wrapping forward |
-| Sneak + right-click a filled item frame | the item turns back one step |
-| Open a double door | its other half opens with it |
-| Run out of what you were holding | the next identical stack moves into your hand |
+**What this mod deliberately does not touch:** the grindstone, the smithing table and the anvil.
+They consume gear rather than stacks, so a bulk gesture there could eat equipment you were keeping
+— and the anvil would spend your XP without asking.
 
 ## Playing well with others
 
-Any gesture already provided by another installed mod is switched off automatically — Quark,
-Mouse Tweaks, RightClickHarvest, Double Doors, Stack Refill and friends keep their own behaviour.
-Set `ignoreOtherMods` to `true` in the config to override that.
+A gesture already provided by another installed mod switches itself off, so mods that own it keep
+their own behaviour. Set `ignoreOtherMods` to `true` in the config to override that.
 
 ## Config
 
-`config/bulkmegapack.json`, written on first launch. One switch per gesture, plus `enabled` for
-the lot. `grindstoneIncludeHotbar` is `false` by default, so the grindstone never touches the tools
-you keep on your hotbar. Renamed items are never ground either.
+`config/bulkmegapack.json`, written on first launch: one switch per station, plus `enabled` for the
+lot.
 
 ## Sides
 

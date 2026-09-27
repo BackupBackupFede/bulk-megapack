@@ -9,13 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tiny loader-agnostic config, read once at startup from {@code config/bulkmegapack.json} (relative to
- * the game directory, which is the working directory on both loaders). Dependency-free on purpose:
- * no NeoForge {@code ModConfigSpec}, no config library — so the mod stays a single dependency on
- * every loader.
+ * Tiny loader-agnostic config, read once at startup from {@code config/bulkmegapack.json} (relative
+ * to the game directory, which is the working directory on both loaders). Dependency-free on
+ * purpose: no NeoForge {@code ModConfigSpec}, no config library — so the mod stays a single
+ * dependency on every loader.
  *
  * <p>One switch per station, plus the master {@code enabled}. Keys missing from an older file keep
- * their default, and are written back so the file always lists every option.
+ * their default and are written back, so the file always lists every option.
  */
 public final class BulkMegapackConfig {
 
@@ -24,16 +24,9 @@ public final class BulkMegapackConfig {
     private static boolean enabled = true;
     private static boolean merchant = true;
     private static boolean stonecutter = true;
-    private static boolean smithing = true;
     private static boolean loom = true;
     private static boolean cartography = true;
-    private static boolean grindstone = true;
-    private static boolean grindstoneIncludeHotbar = false;
-    private static boolean harvest = true;
     private static boolean composter = true;
-    private static boolean cycleBack = true;
-    private static boolean doubleDoors = true;
-    private static boolean restock = true;
     private static boolean ignoreOtherMods = false;
 
     private BulkMegapackConfig() {}
@@ -47,16 +40,9 @@ public final class BulkMegapackConfig {
             enabled = read(root, "enabled", true);
             merchant = read(root, "merchant", true);
             stonecutter = read(root, "stonecutter", true);
-            smithing = read(root, "smithing", true);
             loom = read(root, "loom", true);
             cartography = read(root, "cartography", true);
-            grindstone = read(root, "grindstone", true);
-            grindstoneIncludeHotbar = read(root, "grindstoneIncludeHotbar", false);
-            harvest = read(root, "harvest", true);
             composter = read(root, "composter", true);
-            cycleBack = read(root, "cycleBack", true);
-            doubleDoors = read(root, "doubleDoors", true);
-            restock = read(root, "restock", true);
             ignoreOtherMods = read(root, "ignoreOtherMods", false);
 
             Files.createDirectories(file.getParent());
@@ -85,10 +71,6 @@ public final class BulkMegapackConfig {
         return enabled && stonecutter;
     }
 
-    public static boolean smithing() {
-        return enabled && smithing;
-    }
-
     public static boolean loom() {
         return enabled && loom;
     }
@@ -97,37 +79,12 @@ public final class BulkMegapackConfig {
         return enabled && cartography;
     }
 
-    public static boolean grindstone() {
-        return enabled && grindstone;
-    }
-
-    public static boolean harvest() {
-        return enabled && harvest;
-    }
-
     public static boolean composter() {
         return enabled && composter;
-    }
-
-    public static boolean cycleBack() {
-        return enabled && cycleBack;
-    }
-
-    public static boolean doubleDoors() {
-        return enabled && doubleDoors;
-    }
-
-    public static boolean restock() {
-        return enabled && restock;
     }
 
     /** When true, a gesture stays on even if a mod that already provides it is installed. */
     public static boolean ignoreOtherMods() {
         return ignoreOtherMods;
-    }
-
-    /** When false (default), the grindstone never pulls from the hotbar, where the player keeps their own tools. */
-    public static boolean grindstoneIncludeHotbar() {
-        return grindstoneIncludeHotbar;
     }
 }
