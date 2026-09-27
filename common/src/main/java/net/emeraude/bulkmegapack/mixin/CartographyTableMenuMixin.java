@@ -14,15 +14,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Cartography table: onTake takes one map and one additional item (empty map, paper, glass pane).
- * Both are topped up before each take. Cloning needs one more step: the usual case is a single
- * map, which the take consumes while its two copies land in the inventory. Refilling the emptied
- * map slot with one of those copies right after the take keeps the chain going, so one click
- * turns every empty map in the inventory into a copy.
+ * Each take that empties a slot gets one replacement from the inventory right after it, which is
+ * what chains cloning: the single map is consumed while its two copies land in the inventory, and
+ * one of those copies goes back in. Inputs are deliberately NOT topped up to a full stack — the
+ * chain ends when the empty maps run out, and a topped-up stack of maps would be stranded in the
+ * table. Whatever is still in the slots when the chain stops is handed back to the player.
  */
 @Mixin(CartographyTableMenu.class)
 public abstract class CartographyTableMenuMixin {
 
-    private static final int INPUT_SLOTS = 2; // map, additional
+    private static final int MAP_SLOT = 0;
+    private static final int ADDITIONAL_SLOT = 1;
+    private static final int INPUT_SLOTS = 2;
     private static final int RESULT_SLOT = 2;
 
     /** Inputs as they were before the take in progress, or null when it isn't a result take. */
@@ -36,7 +39,6 @@ public abstract class CartographyTableMenuMixin {
         AbstractContainerMenu menu = (AbstractContainerMenu) (Object) this;
         ItemStack[] before = new ItemStack[INPUT_SLOTS];
         for (int slot = 0; slot < INPUT_SLOTS; slot++) {
-            Refill.topUp(menu, player, slot);
             before[slot] = menu.slots.get(slot).getItem().copyWithCount(1);
         }
         this.bulkmegapack$before = before;
@@ -52,5 +54,6 @@ public abstract class CartographyTableMenuMixin {
         for (int slot = 0; slot < INPUT_SLOTS; slot++) {
             Refill.refillEmptied(menu, player, slot, before[slot]);
         }
+        if (!menu.slots.get(RESULT_SLOT).hasItem()) Refill.giveBack(menu, player, MAP_SLOT, ADDITIONAL_SLOT);
     }
 }

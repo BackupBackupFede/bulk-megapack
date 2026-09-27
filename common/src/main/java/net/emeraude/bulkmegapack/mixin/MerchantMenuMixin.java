@@ -2,6 +2,8 @@ package net.emeraude.bulkmegapack.mixin;
 
 import net.emeraude.bulkmegapack.BulkMegapackConfig;
 import net.minecraft.world.entity.player.Player;
+import net.emeraude.bulkmegapack.Refill;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MerchantContainer;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemStack;
@@ -30,6 +32,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MerchantMenu.class)
 public abstract class MerchantMenuMixin {
 
+    private static final int PAYMENT1_SLOT = 0;
+    private static final int PAYMENT2_SLOT = 1;
     private static final int RESULT_SLOT = 2;
 
     @Shadow @Final private MerchantContainer tradeContainer;
@@ -49,5 +53,14 @@ public abstract class MerchantMenuMixin {
         this.moveFromInventoryToPaymentSlot(0, offer.getItemCostA());
         offer.getItemCostB().ifPresent(cost -> this.moveFromInventoryToPaymentSlot(1, cost));
         this.tradeContainer.updateSellItem(); // recompute the result slot
+    }
+
+    @Inject(method = "quickMoveStack", at = @At("RETURN"))
+    private void bulkmegapack$giveBack(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
+        if (index != RESULT_SLOT || player.level().isClientSide() || !BulkMegapackConfig.merchant()) return;
+        if (cir.getReturnValue().isEmpty()) return;
+
+        AbstractContainerMenu menu = (AbstractContainerMenu) (Object) this;
+        if (!menu.slots.get(RESULT_SLOT).hasItem()) Refill.giveBack(menu, player, PAYMENT1_SLOT, PAYMENT2_SLOT);
     }
 }

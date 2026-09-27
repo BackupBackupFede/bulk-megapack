@@ -89,6 +89,7 @@ public final class BulkMegapackSelfTest {
             check(failures, "doubleDoors", doubleDoors(server, level));
             check(failures, "itemFrame", itemFrame(server, level));
             check(failures, "restock", restock(server, level));
+            check(failures, "restockScroll", restockScroll(server, level));
         } catch (Throwable t) {
             BulkMegapack.LOGGER.error("[SELFTEST] crashed", t);
             failures.add("crash: " + t);
@@ -156,6 +157,8 @@ public final class BulkMegapackSelfTest {
             if (ItemStack.isSameItemSameComponents(inv.getItem(i), map)) clones += inv.getItem(i).getCount();
         }
         clones += menu.slots.get(0).getItem().getCount();
+        String stranded = leftInStation(menu, 0, 1);
+        if (stranded != null) return "left in the table: " + stranded;
         return clones == 6 && empty == 0 ? null : clones + " maps / " + empty + " empty maps left (expected 6 / 0)";
     }
 
@@ -191,6 +194,8 @@ public final class BulkMegapackSelfTest {
 
         shiftClick(menu, player, menu.getResultSlot());
         int made = count(inv, "minecraft:netherite_sword");
+        String stranded = leftInStation(menu, 0, 1, 2);
+        if (stranded != null) return "left in the table: " + stranded;
         return made == 3 ? null : made + " netherite swords (expected 3)";
     }
 
@@ -216,6 +221,8 @@ public final class BulkMegapackSelfTest {
             else patterned += s.getCount();
         }
         plainLeft += menu.slots.get(0).getItem().getCount();
+        String stranded = leftInStation(menu, 0, 1);
+        if (stranded != null) return "left in the loom: " + stranded;
         return patterned == 4 && plainLeft == 0 ? null : patterned + " patterned / " + plainLeft + " plain left (expected 4 / 0)";
     }
 
@@ -369,7 +376,58 @@ public final class BulkMegapackSelfTest {
             : hand.getCount() + " in hand, " + count(inv, "minecraft:stone") + " in total (expected 64 / 64)";
     }
 
+    /**
+     * Scrolling the hotbar onto an empty slot must NOT drag the previous stack along. The tick sees
+     * an empty hand in both cases, so what tells them apart is whether the remembered stack was
+     * used up (count 0) or is still alive somewhere else.
+     */
+    private static String restockScroll(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        Inventory inv = player.getInventory();
+        inv.setItem(9, stack("minecraft:stone", 64));
+
+        // Used up in place: the very stack in hand reaches count 0.
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack("minecraft:stone", 1));
+        ItemStack inHand = player.getMainHandItem();
+        String ticked = tick(player);
+        if (ticked != null) return ticked;
+        inHand.shrink(1);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        if ((ticked = tick(player)) != null) return ticked;
+        if (player.getMainHandItem().getCount() != 64) return "a used-up stack was not restocked";
+
+        // Scrolled away: the stack is still whole, just somewhere else.
+        ItemStack moved = player.getMainHandItem();
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        if ((ticked = tick(player)) != null) return ticked;
+        inv.setItem(20, moved);
+        inv.setItem(9, stack("minecraft:stone", 64));
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        if ((ticked = tick(player)) != null) return ticked;
+        return player.getMainHandItem().isEmpty() ? null : "scrolling to an empty slot pulled a stack into the hand";
+    }
+
     // --- helpers --------------------------------------------------------------------------------
+
+    /** One player tick, or a message when this environment cannot tick a connectionless player. */
+    private static String tick(ServerPlayer player) {
+        try {
+            player.tick();
+            return null;
+        } catch (Throwable t) {
+            return "could not tick the test player: " + t;
+        }
+    }
+
+    /** Describes what a station still holds in the given slots, or null when they are all empty. */
+    private static String leftInStation(AbstractContainerMenu menu, int... slotIndexes) {
+        List<String> left = new ArrayList<>();
+        for (int slotIndex : slotIndexes) {
+            ItemStack stack = menu.slots.get(slotIndex).getItem();
+            if (!stack.isEmpty()) left.add(stack.getCount() + "x " + id(stack.getItem()) + " in slot " + slotIndex);
+        }
+        return left.isEmpty() ? null : String.join(", ", left);
+    }
 
     /** Runs the server's own block-use path, which is where the world gestures hook in. */
     private static void useOn(ServerPlayer player, ServerLevel level, ItemStack stack, BlockPos pos) {

@@ -28,7 +28,8 @@ without asking.
 |---|---|
 | Right-click a grown crop | harvests it and replants it, keeping one seed from the drop |
 | Sneak + right-click a composter | the whole stack goes in, one item at a time, vanilla odds |
-| Sneak + right-click a repeater | the delay steps **backwards** instead of wrapping forward |
+| Chain stops with items left in a station | they are handed back to your inventory |
+| Sneak + right-click a repeater, **empty-handed** | the delay steps **backwards** instead of wrapping forward |
 | Sneak + right-click a filled item frame | the item turns back one step |
 | Open a double door | its other half opens with it |
 | Run out of what you were holding | the next identical stack moves into your hand |

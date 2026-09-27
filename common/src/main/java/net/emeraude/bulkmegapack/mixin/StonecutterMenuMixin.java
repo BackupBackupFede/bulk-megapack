@@ -28,4 +28,13 @@ public abstract class StonecutterMenuMixin {
         if (index != RESULT_SLOT || player.level().isClientSide() || !BulkMegapackConfig.stonecutter()) return;
         Refill.topUp((AbstractContainerMenu) (Object) this, player, INPUT_SLOT);
     }
+
+    @Inject(method = "quickMoveStack", at = @At("RETURN"))
+    private void bulkmegapack$giveBack(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
+        if (index != RESULT_SLOT || player.level().isClientSide() || !BulkMegapackConfig.stonecutter()) return;
+        if (cir.getReturnValue().isEmpty()) return;
+
+        AbstractContainerMenu menu = (AbstractContainerMenu) (Object) this;
+        if (!menu.slots.get(RESULT_SLOT).hasItem()) Refill.giveBack(menu, player, INPUT_SLOT);
+    }
 }

@@ -12,9 +12,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Loom: onTake takes one banner and one dye, and the pattern stays selected while both slots hold
- * something. Topping up the banner and the dye before each take applies the same pattern to every
- * identical banner in the inventory. The pattern item itself is never consumed.
+ * Loom: onTake takes one banner and one dye, and clears the chosen pattern as soon as either slot
+ * runs empty — so here the slots are topped up BEFORE the take rather than refilled after it. The
+ * pattern item is never consumed, so only banners and dye limit the run, and whatever is left over
+ * once the chain stops is handed back to the player.
  */
 @Mixin(LoomMenu.class)
 public abstract class LoomMenuMixin {
@@ -29,5 +30,14 @@ public abstract class LoomMenuMixin {
         AbstractContainerMenu menu = (AbstractContainerMenu) (Object) this;
         Refill.topUp(menu, player, BANNER_SLOT);
         Refill.topUp(menu, player, DYE_SLOT);
+    }
+
+    @Inject(method = "quickMoveStack", at = @At("RETURN"))
+    private void bulkmegapack$giveBack(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
+        if (index != RESULT_SLOT || player.level().isClientSide() || !BulkMegapackConfig.loom()) return;
+        if (cir.getReturnValue().isEmpty()) return;
+
+        AbstractContainerMenu menu = (AbstractContainerMenu) (Object) this;
+        if (!menu.slots.get(RESULT_SLOT).hasItem()) Refill.giveBack(menu, player, BANNER_SLOT, DYE_SLOT);
     }
 }

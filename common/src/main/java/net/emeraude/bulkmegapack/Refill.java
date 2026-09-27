@@ -69,6 +69,42 @@ public final class Refill {
     }
 
     /**
+     * Hands the station's leftovers back to the player, once a chain has stopped. Vanilla would
+     * return them when the screen closes; giving them back right away means the station is left as
+     * it was found instead of holding a stack the player has to fish out.
+     *
+     * <p>Anything that doesn't fit stays in the slot, exactly as vanilla would leave it.
+     */
+    public static void giveBack(AbstractContainerMenu menu, Player player, int... slotIndexes) {
+        Inventory inventory = player.getInventory();
+        for (int slotIndex : slotIndexes) {
+            Slot source = menu.slots.get(slotIndex);
+            ItemStack leftover = source.getItem();
+            if (leftover.isEmpty()) continue;
+
+            // Merge into matching stacks first, then into the first empty slot.
+            for (Slot target : menu.slots) {
+                if (target.container != inventory || leftover.isEmpty()) continue;
+                ItemStack destination = target.getItem();
+                if (destination.isEmpty() || !ItemStack.isSameItemSameComponents(destination, leftover)) continue;
+
+                int room = Math.min(target.getMaxStackSize(destination), destination.getMaxStackSize()) - destination.getCount();
+                int moved = Math.min(room, leftover.getCount());
+                if (moved <= 0) continue;
+                destination.grow(moved);
+                leftover.shrink(moved);
+                target.setChanged();
+            }
+            for (Slot target : menu.slots) {
+                if (target.container != inventory || leftover.isEmpty() || target.hasItem()) continue;
+                target.set(leftover.split(leftover.getCount()));
+                target.setChanged();
+            }
+            source.setChanged();
+        }
+    }
+
+    /**
      * Puts one grindable item from the player's inventory into an empty grindstone input slot.
      * Only items the grindstone would actually strip (at least one non-curse enchantment), never a
      * renamed item, and never from the hotbar unless the config allows it.
