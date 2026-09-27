@@ -1,6 +1,7 @@
 package net.emeraude.bulkmegapack.mixin;
 
 import net.emeraude.bulkmegapack.BulkMegapackConfig;
+import net.emeraude.bulkmegapack.ModsPresent;
 import net.emeraude.bulkmegapack.Refill;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -22,10 +23,13 @@ public abstract class StonecutterMenuMixin {
 
     private static final int INPUT_SLOT = 0;
     private static final int RESULT_SLOT = 1;
+    /** Bulk Stonecutting already does this gesture; its id is read from its own fabric.mod.json. */
+    private static final String[] STONECUTTER_MODS = {"bulk_stonecutting"};
 
     @Inject(method = "quickMoveStack", at = @At("HEAD"))
     private void bulkmegapack$refill(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
         if (index != RESULT_SLOT || player.level().isClientSide() || !BulkMegapackConfig.stonecutter()) return;
+        if (ModsPresent.any(STONECUTTER_MODS)) return;
         Refill.topUp((AbstractContainerMenu) (Object) this, player, INPUT_SLOT);
     }
 

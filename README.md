@@ -25,8 +25,10 @@ They consume gear rather than stacks, so a bulk gesture there could eat equipmen
 
 ## Playing well with others
 
-A gesture already provided by another installed mod switches itself off, so mods that own it keep
-their own behaviour. Set `ignoreOtherMods` to `true` in the config to override that.
+A gesture already provided by another installed mod switches itself off, so the mod that owns it
+keeps its own behaviour — Bulk Compost for the composter, Bulk Stonecutting for the stonecutter.
+Those ids were read from the mods themselves rather than guessed. Set `ignoreOtherMods` to `true`
+in the config to override the check.
 
 ## Config
 

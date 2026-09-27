@@ -21,8 +21,12 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public final class Composting {
 
-    /** Mods that already bulk-compost; when one is loaded, this steps aside. */
-    private static final String[] COMPOSTER_MODS = {"bulkcompost", "quark"};
+    /**
+     * Mods that already bulk-compost; when one is loaded, this steps aside. Read from the mods
+     * themselves, not guessed: Bulk Compost declares {@code bulkcompost} in its gradle.properties.
+     * Quark is deliberately absent — its feature list has never covered the composter.
+     */
+    private static final String[] COMPOSTER_MODS = {"bulkcompost"};
 
     private Composting() {}
 
