@@ -22,13 +22,15 @@ vanilla's own code, run again — and every gesture can be switched off on its o
 The anvil is deliberately left alone: it charges levels, and chaining it would spend your XP
 without asking.
 
+A station is left as you found it: when the run stops, anything still sitting in its input slots
+goes back to your inventory.
+
 ### In the world
 
 | Gesture | What happens |
 |---|---|
 | Right-click a grown crop | harvests it and replants it, keeping one seed from the drop |
 | Sneak + right-click a composter | the whole stack goes in, one item at a time, vanilla odds |
-| Chain stops with items left in a station | they are handed back to your inventory |
 | Sneak + right-click a repeater, **empty-handed** | the delay steps **backwards** instead of wrapping forward |
 | Sneak + right-click a filled item frame | the item turns back one step |
 | Open a double door | its other half opens with it |
