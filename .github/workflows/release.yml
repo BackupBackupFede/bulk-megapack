@@ -12,6 +12,10 @@ name: Release
 #
 # Release flow: bump mod_version in gradle.properties, then
 #   git tag v0.1.0 && git push --tags
+#
+# Action majors were bumped away from the Node 20 deprecation. build.yml exercises checkout /
+# setup-java / setup-gradle on every push, so those are proven early; upload-artifact and
+# download-artifact only ever run here, so WATCH the first tag of a new mod.
 
 on:
   push:
@@ -27,7 +31,7 @@ jobs:
     outputs:
       list: ${{ steps.read.outputs.list }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: read
         name: Read MATRIX keys from build.gradle
         run: |
@@ -48,17 +52,17 @@ jobs:
     runs-on: ubuntu-latest
     name: build ${{ matrix.minecraft }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
             21
             25
       - run: chmod +x ./gradlew
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - run: ./gradlew build -Pminecraft_version=${{ matrix.minecraft }} --stacktrace
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: jars-${{ matrix.minecraft }}
           # upload-artifact globs with @actions/glob, NOT bash. Extglob such as
@@ -97,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     name: publish ${{ matrix.minecraft }} ${{ matrix.loader }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: jars-${{ matrix.minecraft }}
           path: dist
@@ -177,7 +181,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: jars-*
           merge-multiple: true
